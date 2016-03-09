@@ -1,6 +1,7 @@
 package chuangbang.entity;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
 import cn.bmob.v3.BmobObject;
@@ -12,7 +13,7 @@ import cn.bmob.v3.datatype.BmobRelation;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Project extends BmobObject{
+public class Project extends BmobObject implements Serializable{
 	private User owner;//项目发布者
 	private String name;//项目名称
 	private String domain;//项目领域标签
@@ -23,8 +24,8 @@ public class Project extends BmobObject{
 	private String advantage;//竞争优势
 	private String businessModel;//商业模式
 	private Integer financingState;//融资阶段
-	private Integer financingAmount;//融资金额
-	private Integer transferShare;//出让股份
+	private String financingAmount;//融资金额
+	private String transferShare;//出让股份
 	private String state;//项目状态
 	private BmobFile logo;
 	private BmobRelation teamList;//项目成员列表
@@ -132,18 +133,16 @@ public class Project extends BmobObject{
 	public void setFinancingState(Integer financingState) {
 		this.financingState = financingState;
 	}
-	
-	public Integer getFinancingAmount() {
+	public String getFinancingAmount() {
 		return financingAmount;
 	}
-	public void setFinancingAmount(Integer financingAmount) {
+	public void setFinancingAmount(String financingAmount) {
 		this.financingAmount = financingAmount;
 	}
-	
-	public Integer getTransferShare() {
+	public String getTransferShare() {
 		return transferShare;
 	}
-	public void setTransferShare(Integer transferShare) {
+	public void setTransferShare(String transferShare) {
 		this.transferShare = transferShare;
 	}
 	public String getState() {

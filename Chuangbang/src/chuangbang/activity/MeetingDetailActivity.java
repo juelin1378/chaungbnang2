@@ -147,7 +147,7 @@ public class MeetingDetailActivity extends Activity implements android.view.View
 
 		case R.id.btn_meeting_detail_refuse:
 			intent = new Intent(this, RefuseMeetingActivity.class);
-			intent.putExtra("meeting", meet);
+			intent.putExtra("meetId", meet.getObjectId());
 			startActivity(intent);
 			break;
 

@@ -24,11 +24,9 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
-import chuangbang.activity.PartnerActivity;
 import chuangbang.activity.R;
 import chuangbang.activity.SeeOneProject;
 import chuangbang.adapter.SeeProAdapter;
-import chuangbang.entity.PartnerDemand;
 import chuangbang.entity.Project;
 import chuangbang.entity.User;
 import chuangbang.util.SharedPreferencesUtils;
@@ -56,11 +54,11 @@ import android.widget.ListView;
  * @author Administrator
  *
  */
-public class EntrepreneurFragment extends Fragment implements OnClickListener, OnItemClickListener{
+public class EntrepreneurFragment extends Fragment implements OnClickListener{
 	private ListView lvSeeProject;
 	private String url;
 	private HttpUtils http;
-	private List<PartnerDemand> data;
+	private List<User> data;
 	private BaseAdapter adapter;
 	private Handler handler;
 	private int page = 1;
@@ -68,7 +66,6 @@ public class EntrepreneurFragment extends Fragment implements OnClickListener, O
 	private Button loadmoreButton;
 	protected Gson gson;
 	protected SharedPreferencesUtils spfu;
-	private int skip = 0;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -85,56 +82,54 @@ public class EntrepreneurFragment extends Fragment implements OnClickListener, O
 		// 将底部按钮添加进lstView
 		lvSeeProject.addFooterView(loadmoreItem);
 		//初始化数据
-		data = new ArrayList<PartnerDemand>();
+		data = new ArrayList<User>();
 		adapter = new SeeProAdapter(data, getActivity());
 		lvSeeProject.setAdapter(adapter);
 		//添加监听器
 		loadmoreButton.setOnClickListener(this);
-		lvSeeProject.setOnItemClickListener(this);
-
-
+//		lvSeeProject.setOnItemClickListener(this);
+		
+		
 		initView();
-
+		
 		return view;
 	}
-
+	
 	/**
 	 * 初始化原有的数据
 	 */
 	private void initView(){
 		gson = new Gson();
-		spfu = new SharedPreferencesUtils(getActivity(), "partner");
-		List<String> userJsons = spfu.query("partner");
+		spfu = new SharedPreferencesUtils(getActivity(), "users");
+		List<String> userJsons = spfu.query("user");
 		if(userJsons.size()==0){
 			loadUserData(skip);
-			Log.i("DATA","开启网络");
 		}else{
 			skip = userJsons.size()+1;
 			data.clear();
-			Log.i("DATA","调用缓存");
 			//调用缓存
-			List<PartnerDemand> newList=new ArrayList<PartnerDemand>();
+			List<User> newList=new ArrayList<User>();
 			for (String string : userJsons) {
-				//Log.i("DATA", "数据："+string);
-				PartnerDemand partner = gson.fromJson(string, PartnerDemand.class);
-				newList.add(partner);
-
+				Log.i("DATA", "数据："+string);
+				User user = gson.fromJson(string, User.class);
+				newList.add(user);
+				
 			}
 			/*
 			 * 对List进行排序
 			 */
-			Collections.sort(newList, new Comparator<PartnerDemand>() {
+			Collections.sort(newList, new Comparator<User>() {
 
 				@Override
-				public int compare(PartnerDemand lhs, PartnerDemand rhs) {
-					// TODO Auto-generated method stub
+				public int compare(User lhs, User rhs) {
+					
 					return rhs.getCreatedAt().compareTo(lhs.getCreatedAt());
 				}
 			});
 			data.addAll(newList);
 			adapter.notifyDataSetChanged();
-
-
+		
+			
 		}
 	}
 	/**
@@ -142,30 +137,30 @@ public class EntrepreneurFragment extends Fragment implements OnClickListener, O
 	 * @param newSkip 
 	 */
 	private void loadUserData(int newSkip) {
-		BmobQuery<PartnerDemand> query = new BmobQuery<PartnerDemand>();
+		BmobQuery<User> query = new BmobQuery<User>();
 		//查询playerName叫“比目”的数据
-		//query.addWhereEqualTo("memberType", 2);
+		query.addWhereEqualTo("memberType", 2);
 		//返回50条数据，如果不加上这条语句，默认返回10条数据
 		query.setLimit(10);
 		query.setSkip(newSkip);
 		query.order("createdAt");
-		query.findObjects(getActivity(), new FindListener<PartnerDemand>() {
+		query.findObjects(getActivity(), new FindListener<User>() {
 			@Override
-			public void onSuccess(List<PartnerDemand> partner) {
-				Log.i("DATA",partner.toString());
-				for (PartnerDemand user : partner) {
-
-
+			public void onSuccess(List<User> users) {
+				Log.i("DATA", "成功获取数据的大小："+users.size());
+				for (User user : users) {
+					Log.i("DATA", "用户名："+user.getUsername()+"用户类型:"+user.getMemberType());
+					
 					String userJson = gson.toJson(user);
-					spfu.save("partner", userJson);
-
+					spfu.save("user", userJson);
+					
 				}
-				data.addAll(partner);
+				data.addAll(users);
 				adapter.notifyDataSetChanged();
 				skip+=10;
 				loadmoreButton.setText("加载更多");
 			}
-
+			
 			@Override
 			public void onError(int code, String msg) {
 				Log.i("DATA", "查询数据失败："+code+"|"+msg);
@@ -173,31 +168,31 @@ public class EntrepreneurFragment extends Fragment implements OnClickListener, O
 
 		});
 	}
-
-
-
-
-
+	
+	
+	
+	private int skip = 0;
+	
 	public void onClick(View arg0) {
 		loadmoreButton.setText("正在加载");
 		loadUserData(skip);
 	}
-	
-		/**
-		 * listView的短点击
-		 */
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-			PartnerDemand intentPar=new PartnerDemand();
-		
-			intentPar = data.get(arg2);
-			
-			Intent intent = new Intent(getActivity(),PartnerActivity.class);
-			
-			intent.putExtra("partner",intentPar );
-			
-			startActivity(intent);
-	
-		}
+//
+//	/**
+//	 * listView的短点击
+//	 */
+//	@Override
+//	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+//		Project intentPro = new Project();
+//		System.out.println("跳转");
+//		intentPro = data.get(arg2);
+//		Log.i("Tag", "intentPro" + intentPro.toString());
+//		Intent intent = new Intent(getActivity(), SeeOneProject.class);
+//		Bundle bundle = new Bundle();
+//		bundle.putParcelable("see_pro_project", intentPro);
+//		intent.putExtras(bundle);
+//		startActivity(intent);
+//
+//	}
 
 }

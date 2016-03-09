@@ -9,7 +9,6 @@ import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 import chuangbang.activity.R;
 import chuangbang.app.ChuangApp;
-import chuangbang.entity.PartnerDemand;
 import chuangbang.entity.User;
 
 import android.content.Context;
@@ -22,16 +21,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class SeeProAdapter extends BaseAdapter{
-	private List<PartnerDemand> data;
+	private List<User> data;
 	private LayoutInflater inflater;
 	private ChuangApp app;
 	private DisplayImageOptions options;
 	private Context con;
 	private ImageLoader io;
 
-	public SeeProAdapter(List<PartnerDemand> data,Context context){
+	public SeeProAdapter(List<User> data,Context context){
 		if (data == null) {
-			this.data = new ArrayList<PartnerDemand>();
+			this.data = new ArrayList<User>();
 		} else {
 			this.data = data;
 		}
@@ -73,24 +72,26 @@ public class SeeProAdapter extends BaseAdapter{
 		if(convertView==null){
 			holder=new ViewHolder();
 			convertView=inflater.inflate(R.layout.item_see_project, null);
-			holder.tvTitle=(TextView)convertView.findViewById(R.id.tv_see_project_proName);
-			holder.tvText=(TextView)convertView.findViewById(R.id.tv_see_project_proLocation);
-			
-		
+			holder.tvProName=(TextView)convertView.findViewById(R.id.tv_see_project_proName);
+			holder.tvProDescription=(TextView)convertView.findViewById(R.id.tv_see_project_proDescription);
+			holder.tvProLocation=(TextView)convertView.findViewById(R.id.tv_see_project_proLocation);
+			holder.ivAvater=(ImageView)convertView.findViewById(R.id.iv_see_project_avater);
 			convertView.setTag(holder);
 
 
 		}else{
 			holder=(ViewHolder)convertView.getTag();
 		}
-		holder.tvTitle.setText(data.get(position).getTitle());
-		holder.tvText.setText(data.get(position).getText());
-		
-
+		holder.tvProName.setText(data.get(position).getUsername());
+		holder.tvProDescription.setText(data.get(position).getDescription());
+		holder.tvProLocation.setText(data.get(position).getUsername()+".."+data.get(position).getUsername());
+		if(data.get(position).getAvatar()!=null)
+		app.getImageLoader().displayImage(data.get(position).getAvatar().getFileUrl(con), holder.ivAvater, options);
 		return convertView;
 	}
 	private class ViewHolder{
-		TextView tvTitle,tvText;
+		ImageView ivAvater;
+		TextView tvProName,tvProDescription,tvProLocation;
 	}
 
 

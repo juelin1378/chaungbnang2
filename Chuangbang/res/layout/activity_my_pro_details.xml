@@ -8,19 +8,19 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="chuangbang.activity.ProjectDetailsActivity" >
 
-    <!-- 项目详情 -->
+ <!-- 项目详情 -->
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/ll_activity_project_bottom" >
+        android:layout_above="@+id/ll_activity_project_bottom">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusableInTouchMode="true"
-            android:orientation="vertical" >
-
+            android:orientation="vertical" 
+            android:focusableInTouchMode="true">
+		
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
@@ -106,6 +106,7 @@
                     android:id="@+id/et_my_pro_detail_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    
                     android:text="项目简介内容" />
             </LinearLayout>
 
@@ -135,16 +136,16 @@
                 android:orientation="vertical" >
 
                 <TextView
+                    android:id="@+id/tv_activity_project_solution"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="我们的解决方案" />
 
-                <EditText
-                    android:id="@+id/et_my_pro_details_solution"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    />
+                    android:text="........" />
             </LinearLayout>
 
             <LinearLayout
@@ -159,26 +160,16 @@
                     android:textSize="20sp" />
 
                 <TextView
+                    android:id="@+id/tv_activity_project_competitors"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="现有竞争产品" />
 
-                <EditText
-                    android:id="@+id/et_my_pro_details_competitors"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                   />
-
                 <TextView
+                    android:id="@+id/tv_activity_project_advantage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="我们的竞争优势" />
-
-                <EditText
-                    android:id="@+id/et_my_pro_details_advantage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                     />
             </LinearLayout>
 
             <LinearLayout
@@ -192,11 +183,11 @@
                     android:text="商业模式"
                     android:textSize="20sp" />
 
-                <EditText
-                    android:id="@+id/et_my_pro_details_businessModel"
+                <TextView
+                    android:id="@+id/tv_activity_project_businessModel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    />
+                    android:text="......." />
             </LinearLayout>
 
             <LinearLayout
@@ -226,12 +217,12 @@
                             android:layout_weight="1.0"
                             android:text="融资阶段" />
 
-                        <Spinner
-                            android:id="@+id/sp_my_pro_details_financing_state"
+                        <TextView
+                            android:id="@+id/tv_activity_project_financing"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="20dp"
-                            android:layout_weight="1.0" />
+                            android:layout_weight="1.0"
+                            android:text="天使轮" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -244,26 +235,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1.0"
                             android:text="融资金额" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" >
-
-                        <EditText
-                            android:id="@+id/et_my_pro_details_money"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1.0"
-                            android:inputType="number"
-                            />
 
                         <TextView
+                            android:id="@+id/tv_activity_project_money"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1.0"
-                            android:text="￥" />
+                            android:text="300万" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -275,28 +253,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1.0"
-                            
                             android:text="出让股份" />
-                    </LinearLayout>
-                    
-                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" >
 
-                    <EditText
-                        android:id="@+id/et_my_pro_shares"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.0"
-                        android:inputType="number"
-                        android:hint="百分比" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1.0"
-                        android:text="%" />
+                        <TextView
+                            android:id="@+id/tv_activity_project_shares"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.0"
+                            android:text="10%" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -310,12 +274,12 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:text="评论" />
-
-                    <chuangbang.view.MyListView
-                        android:id="@+id/mlv_activity_project_comment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" >
-                    </chuangbang.view.MyListView>
+                   <chuangbang.view.MyListView 
+                       android:id="@+id/mlv_activity_project_comment"
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content">
+                       
+                   </chuangbang.view.MyListView>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -327,27 +291,24 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/bnt_activity_my_project_back"
+        <Button 
+            android:id="@+id/bnt_activity_project_collection_or_edit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="返回" />
-
-        <Button
+            android:text="收藏"/>
+        <Button 
             android:id="@+id/bnt_activity_my_project_update"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="修改" />
-
-        <Button
+            android:text="修改"/>
+        <Button 
             android:id="@+id/bnt_activity_my_project_deleted"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.0"
-            android:text="删除" />
+            android:text="删除"/>
     </LinearLayout>
 
 </RelativeLayout>

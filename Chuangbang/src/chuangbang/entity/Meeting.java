@@ -6,7 +6,6 @@ import cn.bmob.v3.BmobObject;
 
 public class Meeting extends BmobObject{
 
-	private Date createAt;
 	private User applyUser;
 	private User inviteUser;
 	private String applyText;
@@ -19,13 +18,7 @@ public class Meeting extends BmobObject{
 	private String meetingPosition;
 	private Date meetingTime;
 
-	
-	public Date getCreateAt() {
-		return createAt;
-	}
-	public void setCreateAt(Date createAt) {
-		this.createAt = createAt;
-	}
+
 	public User getApplyUser() {
 		return applyUser;
 	}
@@ -94,7 +87,7 @@ public class Meeting extends BmobObject{
 	}
 	@Override
 	public String toString() {
-		return "Meeting [createAt=" + createAt + ", applyUser=" + applyUser
+		return "Meeting [applyUser=" + applyUser
 				+ ", inviteUser=" + inviteUser + ", applyText=" + applyText
 				+ ", project=" + project + ", state=" + state + ", reply="
 				+ reply + ", refuseResource=" + refuseResource

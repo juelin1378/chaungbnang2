@@ -136,7 +136,7 @@ public class BusinessCircleFragment extends Fragment implements OnClickListener,
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
 		Log.i("project", "跳转下一个界面");
 		Intent intent = new Intent(getActivity(), ProjectDetailsActivity.class);
-		intent.putExtra("projectId", data.get(position).getObjectId());
+		intent.putExtra("project", data.get(position));
 		getActivity().startActivity(intent);
 	}
 

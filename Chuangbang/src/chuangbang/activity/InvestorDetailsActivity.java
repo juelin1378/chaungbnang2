@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,30 +32,29 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class InvestorDetailsActivity extends Activity implements OnClickListener {
 	
 	private Button btnSend;
-	private List<Project> pro;
+	private List<Project> pros;
 	private InvestorInfo ii;
 	private TextView tvName,tvCompanyName,tvPosition,tvDomain,tvInvestmentstage,tvDescription;
 	private ImageView ivAvater;
 	private User user;
+	private Handler handler;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_investor_detail);
 		initView();
-		Intent intent = getIntent();
-		ii = (InvestorInfo) intent.getSerializableExtra("investor");
-		Log.i("investor", "ii:"+ii.getOwner().toString());
-		user=ii.getOwner();
-		pro = new ArrayList<Project>();
 		setInvestorView();
 		queryProData();
 		
@@ -67,6 +67,7 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 		tvDomain.setText(ii.getInvestmentDomain());
 		tvInvestmentstage.setText(ii.getInvestmentStage());
 		tvDescription.setText(user.getDescription());
+		
 	}
 
 	private void initView() {
@@ -78,6 +79,15 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 		tvDescription=(TextView)findViewById(R.id.tv_activity_investor_description);
 		tvInvestmentstage=(TextView)findViewById(R.id.tv_activity_investor_investmentstage);
 		ivAvater=(ImageView)findViewById(R.id.iv_activity_investor_avater);
+		
+		Intent intent = getIntent();
+		ii = (InvestorInfo) intent.getSerializableExtra("investor");
+		Log.i("investor", "ii:"+ii.getOwner().toString());
+		user=ii.getOwner();
+		pros = new ArrayList<Project>();
+		handler = new InnerHandler();
+		
+		
 		btnSend.setOnClickListener(this);
 	}
 
@@ -90,6 +100,15 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 
 		}
 		
+	}
+	
+	private class InnerHandler extends Handler{
+		@Override
+		public void handleMessage(Message msg) {
+			if(msg.what == 0x1233){
+				sendMeeting();
+			}
+		}
 	}
 	
 	/**
@@ -146,8 +165,8 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 				// TODO Auto-generated method stub
 				Log.i("send", "查询成功："+mes.size());
 				if(mes.size()<3){
-					sendMeeting();
-					
+					//sendMeeting();
+					handler.sendEmptyMessage(0x1233);
 				}else{
 					Toast.makeText(InvestorDetailsActivity.this, "今天你的约谈已经3次了，等明天在约谈", Toast.LENGTH_SHORT).show();
 				}
@@ -155,61 +174,68 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 		});
 	}
 	
-	protected void sendMeeting() {
-		// TODO Auto-generated method stub
+	private Project project = null;
+	protected void sendMeeting() {	
+		
 		final User user = BmobUser.getCurrentUser(this, User.class);
-		LinearLayout ll = (LinearLayout) LayoutInflater.from(InvestorDetailsActivity.this).inflate(R.layout.dialog_view, null);
-		TextView tvInvestor1 = (TextView) ll.findViewById(R.id.tv_dialog_text01);
-		TextView tvInvestor2 = (TextView) ll.findViewById(R.id.tv_dialog_text02);
-		TextView tvInvestor3 = (TextView) ll.findViewById(R.id.tv_dialog_text03);
-		if(pro.size()==1){
-			tvInvestor1.setText(pro.get(0).getName());
-			tvInvestor2.setVisibility(View.GONE);
-			tvInvestor3.setVisibility(View.GONE);
+		Log.i("abc", "pros:"+pros.size());
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("选择你约谈的项目？");
+		String[] items = null;
+		if(pros.size()==3){
+			items = new String[]{pros.get(0).getName(),pros.get(1).getName(),pros.get(2).getName()};
+		}else if(pros.size()==2){
+			items = new String[]{pros.get(0).getName(),pros.get(1).getName()};
+		}else{
+			items = new String[]{pros.get(0).getName()};
 		}
-		if(pro.size()==2){
-			tvInvestor1.setText(pro.get(0).getName());
-			tvInvestor2.setText(pro.get(1).getName());
-			tvInvestor3.setVisibility(View.GONE);
-		}
-			
-		if(pro.size()==3){
-			tvInvestor1.setText(pro.get(0).getName());
-			tvInvestor2.setText(pro.get(1).getName());
-			tvInvestor3.setText(pro.get(2).getName());
-		}
-		final Dialog dialog = new AlertDialog.Builder(InvestorDetailsActivity.this)
-		.create();
-		dialog.show();
-		dialog.getWindow().setContentView(ll);
-		tvInvestor1.setOnClickListener(new OnClickListener() {
+		builder.setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
 			
 			@Override
-			public void onClick(View arg0) {
+			public void onClick(DialogInterface arg0, int which) {
 				// TODO Auto-generated method stub
-				setMeeting(user,ii.getOwner(),pro.get(0));
-				dialog.dismiss();
+				Log.i("abc", "你选择了："+which);
+				project = pros.get(which);
 			}
 		});
-		tvInvestor2.setOnClickListener(new OnClickListener() {
+		builder.create();
+		builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 			
 			@Override
-			public void onClick(View arg0) {
+			public void onClick(DialogInterface arg0, int arg1) {
 				// TODO Auto-generated method stub
-				setMeeting(user,ii.getOwner(),pro.get(1));
-				dialog.dismiss();
+				final EditText et = new EditText(InvestorDetailsActivity.this);
+				et.setLines(2);
+				et.setHint("请输入留言内容");
+				AlertDialog dialog = new AlertDialog.Builder(InvestorDetailsActivity.this).setTitle("请输入您的留言")
+						.setIcon(android.R.drawable.ic_dialog_info).setView(et)
+						.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface arg0, int arg1) {
+								String result = et.getText().toString();
+								Log.i("edit", "输入框的内容：" + result);
+								setMeeting(user, project.getOwner(), project,result);
+
+							}
+						}).setNegativeButton("取消", null).create();
+				dialog.show();
+				
 			}
 		});
-		tvInvestor3.setOnClickListener(new OnClickListener() {
-			
+		builder.setNegativeButton("取消", new DialogInterface.OnClickListener(){
+
 			@Override
-			public void onClick(View arg0) {
+			public void onClick(DialogInterface arg0, int arg1) {
 				// TODO Auto-generated method stub
-				setMeeting(user,ii.getOwner(),pro.get(2));
-				dialog.dismiss();
+				
 			}
+			
 		});
+		builder.show();
+		
 	}
+	
 
 	/**
 	 * 约谈
@@ -217,14 +243,13 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 	 * @param owner
 	 * @param project
 	 */
-	protected void setMeeting(User user, User owner, Project project) {
+	protected void setMeeting(User user, User owner, Project project,String text) {
 		Meeting meeting = new Meeting();
 		meeting.setApplyUser(user);
 		meeting.setInviteUser(owner);
 		meeting.setProject(project);
-		meeting.setApplyText("");
+		meeting.setApplyText(text);
 		meeting.setState(1);
-		meeting.setCreateAt(new Date());
 		meeting.save(this, new SaveListener() {
 			
 			@Override
@@ -242,7 +267,9 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 			}
 		});
 	}
-
+	/**
+	 * 获取我的项目
+	 */
 	private void queryProData(){
 		BmobUser user = BmobUser.getCurrentUser(this, User.class);
 		BmobQuery<Project> project = new BmobQuery<Project>();
@@ -252,11 +279,11 @@ public class InvestorDetailsActivity extends Activity implements OnClickListener
 		project.findObjects(this, new FindListener<Project>() {
 			
 			@Override
-			public void onSuccess(List<Project> pros) {
+			public void onSuccess(List<Project> projects) {
 				// TODO Auto-generated method stub
-				Log.i("investor", "查询结果："+pros.toString());
-				pro.clear();
-				pro.addAll(pros);
+				Log.i("investor", "查询结果："+projects.toString());
+				pros.clear();
+				pros.addAll(projects);
 				
 			}
 			

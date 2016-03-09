@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
+import org.json.JSONObject;
 
 import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.BmobUser;
@@ -14,7 +14,7 @@ import cn.bmob.v3.datatype.BmobDate;
 import cn.bmob.v3.datatype.BmobPointer;
 import cn.bmob.v3.datatype.BmobRelation;
 import cn.bmob.v3.listener.FindListener;
-
+import cn.bmob.v3.listener.GetCallback;
 import cn.bmob.v3.listener.GetListener;
 import cn.bmob.v3.listener.SaveListener;
 import cn.bmob.v3.listener.UpdateListener;
@@ -28,16 +28,17 @@ import chuangbang.entity.Project;
 import chuangbang.entity.User;
 import chuangbang.util.SharedPreferencesUtils;
 import chuangbang.view.MyListView;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -51,12 +52,9 @@ import android.widget.Toast;
  * ��Ŀ����
  * 
  * @author chuangbang
- * 
  */
 public class ProjectDetailsActivity extends Activity implements OnClickListener {
 
-	private SharedPreferencesUtils spuProject;
-	private Gson gson;
 	private Button bntCollectionOrEdit, bntComment, bntInterview;
 	private ImageView ivProLogo;
 	private Integer favoriteCount, commentCount;
@@ -75,13 +73,13 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 	private TextView tvProFinancingAmount;// 融资金额
 	private TextView tvProSransferShare;// 出让股份
 	private User currentUser;
+	private User proOwner;
 	private String proId;// 所看项目的objectId
 	private Project currentPro;
-	private Handler handler;
+	// private Handler handler;
 	private MyListView mlvComment;
 	private List<Comment> comments;
 	private ProjectCommentAdapter adapter;
-	private User proOwner;
 
 	/**
 	 * 初始化控件
@@ -122,20 +120,55 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_project_details);
 		initView();
+		// loadProject(proId);
+		init();
+		queryProjectComments(proId);
+
+	}
+
+	private void init() {
+
 		Intent intent = getIntent();
-		proId = intent.getStringExtra("projectId");
+		currentPro = (Project) intent.getSerializableExtra("project");
+		Log.i("project", "当前的项目：" + currentPro.toString());
+		proOwner = currentPro.getOwner();
+		proId = currentPro.getObjectId();
 		Log.i("project", "获取到的项目id" + proId);
 		currentUser = BmobUser.getCurrentUser(ProjectDetailsActivity.this,
 				User.class);
-		handler = new InnerHandler();
-		// currentPro=new Project();
-		loadProject(proId);
-		queryProjectComments(proId);
 
+		String currentUserObject = BmobUser.getCurrentUser(
+				ProjectDetailsActivity.this).getObjectId();
+		Log.i("project", "当前用户Id" + currentUserObject);
+		Log.i("project", "当前项目Id" + currentPro.getObjectId());
+		if (currentUserObject != null
+				&& currentUserObject.equals(currentPro.getObjectId())) {
+			bntCollectionOrEdit.setText("编辑项目");
+		} else {
+			bntCollectionOrEdit.setText("收藏");
+		}
+
+		User user = currentPro.getOwner();
+		tvProTitle.setText(currentPro.getName());
+		tvProUserNick.setText(user.getNickName());
+		tvProUserPosition.setText(user.getWorkingPosition());
+		tvProState.setText(currentPro.getState());
+		tvProDomain.setText(currentPro.getDomain());
+		tvProDescription.setText(currentPro.getDescription());
+		tvProPainPointer.setText(currentPro.getPainPointer());
+		tvProSolution.setText(currentPro.getSolution());
+		tvProCompetitors.setText(currentPro.getCompetitors());
+		tvProAdvantage.setText(currentPro.getAdvantage());
+		tvProBusinessModel.setText(currentPro.getBusinessModel());
+		tvProFinancingAmount.setText(currentPro.getFinancingAmount());
+		// tvProFinancingState.setText(currentPro.getFinancingState());
+		tvProSransferShare.setText(currentPro.getTransferShare());
+
+		favoriteCount = currentPro.getFavoriteUserCount();
+		commentCount = currentPro.getCommentCount();
 	}
 
 	/**
@@ -146,6 +179,7 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 		List<BmobQuery<Meeting>> and = new ArrayList<BmobQuery<Meeting>>();
 		SimpleDateFormat sdf0 = new SimpleDateFormat("yyyy-MM-dd");
 		String time = sdf0.format(new Date());
+		Log.i("date", "当前日期："+time);
 
 		// 大于00：00：00
 		BmobQuery<Meeting> q1 = new BmobQuery<Meeting>();
@@ -172,6 +206,7 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 		q2.addWhereLessThanOrEqualTo("createdAt", new BmobDate(date1));
 		and.add(q2);
 		// 申请人是当前用户
+		Log.i("project", "申请用户："+currentUser.toString());
 		BmobQuery<Meeting> q3 = new BmobQuery<Meeting>();
 		q3.addWhereEqualTo("applyUser", currentUser);
 		and.add(q3);
@@ -181,13 +216,11 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 			@Override
 			public void onError(int arg0, String arg1) {
-				// TODO Auto-generated method stub
 				Log.i("send", "查询失败：" + arg0);
 			}
 
 			@Override
 			public void onSuccess(List<Meeting> mes) {
-				// TODO Auto-generated method stub
 				Log.i("send", "查询成功：" + mes.size());
 				if (mes.size() < 3) {
 					sendMeeting();
@@ -214,16 +247,16 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 					@Override
 					public void onClick(DialogInterface arg0, int arg1) {
-						// TODO Auto-generated method stub
 						String result = et.getText().toString();
-						Log.i("edit", "输入框的内容："+result);
+						Log.i("edit", "输入框的内容：" + result);
 						if (!proOwner.getObjectId().equals(
 								currentUser.getObjectId())) {
 							setMeeting(proOwner, currentUser, currentPro,
 									result);
 						} else {
 							Toast.makeText(ProjectDetailsActivity.this,
-									"该项目是你自己的，不能发起约谈", Toast.LENGTH_SHORT).show();
+									"该项目是你自己的，不能发起约谈", Toast.LENGTH_SHORT)
+									.show();
 						}
 					}
 				}).setNegativeButton("取消", null).create();
@@ -247,12 +280,10 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 		meeting.setProject(currentPro);
 		meeting.setApplyText(applyText);
 		meeting.setState(1);
-		meeting.setCreateAt(new Date());
 		meeting.save(ProjectDetailsActivity.this, new SaveListener() {
 
 			@Override
 			public void onSuccess() {
-				// TODO Auto-generated method stub
 				Log.i("meeting", "已发起约谈");
 				User user = new User();
 				user.setObjectId(currentUser.getObjectId());
@@ -263,13 +294,11 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 					@Override
 					public void onSuccess() {
-						// TODO Auto-generated method stub
 						Log.i("meeting", "关联User成功");
 					}
 
 					@Override
 					public void onFailure(int arg0, String arg1) {
-						// TODO Auto-generated method stub
 						Log.i("meeting", "关联User失败" + arg0);
 					}
 				});
@@ -284,69 +313,9 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 			@Override
 			public void onFailure(int arg0, String arg1) {
-				// TODO Auto-generated method stub
 				Log.i("meeting", "发起约谈失败：" + arg0 + ":" + arg1);
 				Toast.makeText(ProjectDetailsActivity.this, "约谈发送失败",
 						Toast.LENGTH_SHORT).show();
-			}
-		});
-	}
-
-	/**
-	 * 查询数据
-	 * 
-	 * @param proId
-	 */
-	private void loadProject(String proId) {
-
-		BmobQuery<Project> query = new BmobQuery<Project>();
-		query.getObject(this, proId, new GetListener<Project>() {
-
-			@Override
-			public void onFailure(int arg0, String arg1) {
-				// TODO Auto-generated method stub
-				Log.i("project", "查询失败：" + arg0 + ":" + arg1);
-			}
-
-			@Override
-			public void onSuccess(Project pro) {
-				// TODO Auto-generated method stub
-				// Log.i("project",pro.toString());
-				proOwner = pro.getOwner();
-				currentPro = pro;
-				handler.obtainMessage(2222).sendToTarget();
-
-				// User user=pro.getOwner();
-				// tvProTitle.setText(pro.getName());
-				// tvProUserNick.setText(user.getNickName());
-				// tvProUserPosition.setText(user.getWorkingPosition());
-				// tvProState.setText(pro.getState());
-				// tvProDomain.setText(pro.getDomain());
-				// tvProDescription.setText(pro.getDescription());
-				// tvProPainPointer.setText(pro.getPainPointer());
-				// tvProSolution.setText(pro.getSolution());
-				// tvProCompetitors.setText(pro.getCompetitors());
-				// tvProAdvantage.setText(pro.getAdvantage());
-				// tvProBusinessModel.setText(pro.getBusinessModel());
-				// tvProFinancingAmount.setText(pro.getFinancingAmount());
-				// tvProFinancingState.setText(pro.getFinancingState());
-				// tvProSransferShare.setText(pro.getTransferShare());
-				//
-
-				// 获取当前用户object
-				String currentUserObject = BmobUser.getCurrentUser(
-						ProjectDetailsActivity.this).getObjectId();
-				// Log.i("project","当前用户Id"+currentUserObject);
-				Log.i("project", "当前项目Id" + pro.getObjectId());
-
-				if (currentUserObject != null
-						&& currentUserObject.equals(pro.getObjectId())) {
-					bntCollectionOrEdit.setText("编辑项目");
-					Log.i("project", "bianji");
-				} else {
-					bntCollectionOrEdit.setText("收藏");
-					Log.i("project", "souicang");
-				}
 			}
 		});
 	}
@@ -355,10 +324,13 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 	public void onClick(View arg0) {
 		Intent intent = null;
 		switch (arg0.getId()) {
-		
-		//收藏还是修改
 		case R.id.bnt_activity_project_collection_or_edit:
-			setMyFavorite();
+			String str = bntCollectionOrEdit.getText().toString();
+			if (str.equals("收藏")) {
+				setMyFavorite();
+			}else{
+				updatePro(proId);
+			}
 			break;
 		case R.id.bnt_activity_project_comment:
 			intent = new Intent(this, CommentActivity.class);
@@ -371,6 +343,14 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 			doSQLQuery();
 		}
 
+	}
+	/**
+	 * 编辑项目
+	 * @param proId2
+	 */
+	private void updatePro(String proId2) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**
@@ -390,7 +370,6 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 			@Override
 			public void onSuccess(List<Comment> object) {
-				// TODO Auto-generated method stub
 				// Log.i("project", "查询个数："+object.toString());
 				commentCount = object.size();
 				comments.clear();
@@ -400,7 +379,6 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 			@Override
 			public void onError(int code, String msg) {
-				// TODO Auto-generated method stub
 				Log.i("project", "查询失败：" + code + "-" + msg);
 			}
 		});
@@ -422,7 +400,6 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 
 			@Override
 			public void onSuccess() {
-				// Toast.makeText(ProjectDetailsActivity.this,
 				// "收藏成功1",Toast.LENGTH_LONG).show();
 				User user = new User();
 				Log.i("project", "当前用户Id" + currentUser.getObjectId());
@@ -434,22 +411,22 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 				user.update(ProjectDetailsActivity.this,
 						currentUser.getObjectId(), new UpdateListener() {
 
-					@Override
-					public void onSuccess() {
-						Toast.makeText(ProjectDetailsActivity.this,
-								"收藏成功", Toast.LENGTH_LONG).show();
+							@Override
+							public void onSuccess() {
+								Toast.makeText(ProjectDetailsActivity.this,
+										"收藏成功", Toast.LENGTH_LONG).show();
 
-					}
+							}
 
-					@Override
-					public void onFailure(int arg0, String arg1) {
-						Toast.makeText(ProjectDetailsActivity.this,
-								"收藏失败2" + arg1, Toast.LENGTH_LONG)
-								.show();
-						Log.i("project", arg1);
+							@Override
+							public void onFailure(int arg0, String arg1) {
+								Toast.makeText(ProjectDetailsActivity.this,
+										"收藏失败2" + arg1, Toast.LENGTH_LONG)
+										.show();
+								Log.i("project", arg1);
 
-					}
-				});
+							}
+						});
 
 			}
 
@@ -462,39 +439,76 @@ public class ProjectDetailsActivity extends Activity implements OnClickListener 
 		});
 	}
 
-	class InnerHandler extends Handler {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 2222:
-				User user = currentPro.getOwner();
-				tvProTitle.setText(currentPro.getName());
-				tvProUserNick.setText(user.getNickName());
-				tvProUserPosition.setText(user.getWorkingPosition());
-				tvProState.setText(currentPro.getState());
-				tvProDomain.setText(currentPro.getDomain());
-				tvProDescription.setText(currentPro.getDescription());
-				tvProPainPointer.setText(currentPro.getPainPointer());
-				tvProSolution.setText(currentPro.getSolution());
-				tvProCompetitors.setText(currentPro.getCompetitors());
-				tvProAdvantage.setText(currentPro.getAdvantage());
-				tvProBusinessModel.setText(currentPro.getBusinessModel());
-				if(currentPro.getFinancingAmount()!=null)
-					tvProFinancingAmount.setText(currentPro.getFinancingAmount().toString());
-				// tvProFinancingState.setText(currentPro.getFinancingState());
-				if(currentPro.getTransferShare()!=null)
-					tvProSransferShare.setText(currentPro.getTransferShare().toString());
+	// /**
+	// * 查询数据
+	// *
+	// * @param proId
+	// */
+	// private void loadProject(String proId) {
+	//
+	// BmobQuery<Project> query = new BmobQuery<Project>();
+	// query.getObject(this, proId, new GetListener<Project>() {
+	//
+	// @Override
+	// public void onFailure(int arg0, String arg1) {
+	// Log.i("project", "查询失败：" + arg0 + ":" + arg1);
+	// }
+	//
+	// @Override
+	// public void onSuccess(Project pro) {
+	// // Log.i("project",pro.toString());
+	// //proOwner = pro.getOwner();
+	// currentPro = pro;
+	// handler.obtainMessage(2222).sendToTarget();
+	//
+	// // 获取当前用户object
+	// String currentUserObject = BmobUser.getCurrentUser(
+	// ProjectDetailsActivity.this).getObjectId();
+	// // Log.i("project","当前用户Id"+currentUserObject);
+	// Log.i("project", "当前项目Id" + pro.getObjectId());
+	//
+	// if (currentUserObject != null
+	// && currentUserObject.equals(pro.getObjectId())) {
+	// bntCollectionOrEdit.setText("编辑项目");
+	// Log.i("project", "bianji");
+	// } else {
+	// bntCollectionOrEdit.setText("收藏");
+	// Log.i("project", "souicang");
+	// }
+	// }
+	// });
+	// }
 
-				favoriteCount = currentPro.getFavoriteUserCount();
-				commentCount = currentPro.getCommentCount();
-				break;
-
-			default:
-				break;
-			}
-
-		}
-	}
-	
+	// class InnerHandler extends Handler {
+	// @Override
+	// public void handleMessage(Message msg) {
+	// switch (msg.what) {
+	// case 2222:
+	// User user = currentPro.getOwner();
+	// tvProTitle.setText(currentPro.getName());
+	// tvProUserNick.setText(user.getNickName());
+	// tvProUserPosition.setText(user.getWorkingPosition());
+	// tvProState.setText(currentPro.getState());
+	// tvProDomain.setText(currentPro.getDomain());
+	// tvProDescription.setText(currentPro.getDescription());
+	// tvProPainPointer.setText(currentPro.getPainPointer());
+	// tvProSolution.setText(currentPro.getSolution());
+	// tvProCompetitors.setText(currentPro.getCompetitors());
+	// tvProAdvantage.setText(currentPro.getAdvantage());
+	// tvProBusinessModel.setText(currentPro.getBusinessModel());
+	// tvProFinancingAmount.setText(currentPro.getFinancingAmount());
+	// // tvProFinancingState.setText(currentPro.getFinancingState());
+	// tvProSransferShare.setText(currentPro.getTransferShare());
+	//
+	// favoriteCount = currentPro.getFavoriteUserCount();
+	// commentCount = currentPro.getCommentCount();
+	// break;
+	//
+	// default:
+	// break;
+	// }
+	//
+	// }
+	// }
 
 }

@@ -11,17 +11,17 @@ import cn.bmob.v3.BmobObject;
  */
 public class ServiceDevelop extends BmobObject{
 
-	private User applicat;
+	private User applicant;
 	private Project project;
 	private Integer developPlatform;
 	private String domain;
 	private String remarks;//备注
 	private Integer state;
-	public User getApplicat() {
-		return applicat;
+	public User getApplicant() {
+		return applicant;
 	}
-	public void setApplicat(User applicat) {
-		this.applicat = applicat;
+	public void setApplicant(User applicant) {
+		this.applicant = applicant;
 	}
 	public Project getProject() {
 		return project;
@@ -55,7 +55,7 @@ public class ServiceDevelop extends BmobObject{
 	}
 	@Override
 	public String toString() {
-		return "ServiceDevelop [applicat=" + applicat + ", project=" + project
+		return "ServiceDevelop [applicant=" + applicant + ", project=" + project
 				+ ", developPlatform=" + developPlatform + ", domain=" + domain
 				+ ", remarks=" + remarks + ", state=" + state + "]";
 	}

@@ -154,7 +154,6 @@
         </activity>
         <!-- 我的项目详细页面 -->
         <activity android:name="chuangbang.activity.MyProDetailsActivity"></activity>
-        <activity android:name="chuangbang.activity.PartnerActivity"></activity>
 
         <meta-data
             android:name="EASEMOB_APPKEY"

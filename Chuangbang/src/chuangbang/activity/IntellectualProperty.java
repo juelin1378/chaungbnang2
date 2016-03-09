@@ -54,7 +54,7 @@ public class IntellectualProperty extends Activity implements OnItemSelectedList
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_intellectual_property);
-		
+
 		setView();
 		list.add("商标注册");
 		list.add("专利申请");
